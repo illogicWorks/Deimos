@@ -13,3 +13,7 @@ WIP
 ## Creating mods
 
 WIP
+
+## License
+
+This GameProvider is licensed under GPLv3 (if it's not too trivial to not be licensable), however mods won't (shouldn't) directly link against/interact with it, only Fabric Loader (Apache 2.0) and Mars (MIT).
