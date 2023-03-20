@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'net.fabricmc:fabric-loader:0.14.17'
+    api 'net.fabricmc:fabric-loader:0.14.17'
 
     // fabric-loader dependencies, for some reason they're not in its pom
 
@@ -28,13 +28,15 @@ dependencies {
     implementation "org.ow2.asm:asm-tree:${project.asm_version}"
     implementation "org.ow2.asm:asm-util:${project.asm_version}"
 
-    implementation("net.fabricmc:sponge-mixin:${project.mixin_version}") {
+    api("net.fabricmc:sponge-mixin:${project.mixin_version}") {
         exclude module: 'launchwrapper'
         exclude module: 'guava'
     }
+    implementation 'net.fabricmc:access-widener:2.1.0'
+
+    // needed by fabric loader, although we don't need remapping
     implementation 'net.fabricmc:tiny-mappings-parser:0.3.0+build.17'
     implementation 'net.fabricmc:tiny-remapper:0.8.2'
-    implementation 'net.fabricmc:access-widener:2.1.0'
 }
 
 task Run(type: JavaExec) {
