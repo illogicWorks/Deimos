@@ -10,10 +10,10 @@ import net.fabricmc.loader.impl.util.Arguments;
 import net.fabricmc.loader.impl.util.SystemProperties;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.lang.invoke.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class DeimosGameProvider implements GameProvider {
@@ -99,7 +99,7 @@ public class DeimosGameProvider implements GameProvider {
 		try (Stream<Path> children = Files.list(Path.of("."))) {
 			List<Path> paths = children
 					.filter(p -> p.getFileName().toString().startsWith("Mars") && p.getFileName().toString().endsWith(".jar"))
-					.toList();
+					.collect(Collectors.toList());
 			if (paths.size() == 0) {
 				throw new IllegalStateException("Mars jar was not located! Make sure it's in the run folder (current one)");
 			}
@@ -108,7 +108,7 @@ public class DeimosGameProvider implements GameProvider {
 			}
 			gameJar = paths.get(0);
 		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+			throw new IllegalStateException("Exception while trying to locate Mars!", e);
 		}
 		return true;
 	}
