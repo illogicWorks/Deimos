@@ -95,6 +95,7 @@ public class DeimosGameProvider implements GameProvider {
 			if (!Files.exists(gameJar) || Files.isDirectory(gameJar)) {
 				throw new IllegalStateException("Mars jar couldn't be located in provided " + SystemProperties.GAME_JAR_PATH + " (" + gameJar + ")");
 			}
+			return true;
 		}
 		try (Stream<Path> children = Files.list(Path.of("."))) {
 			List<Path> paths = children
