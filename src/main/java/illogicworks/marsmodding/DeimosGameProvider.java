@@ -88,11 +88,15 @@ public class DeimosGameProvider implements GameProvider {
 	}
 	
 	enum MarsLibrary implements LibraryType {
-		MARS;
+		MARS("Mars.class"),
+		DEIMOS(DeimosGameProvider.class.getCanonicalName().replace('.', '/') + ".class");
+		private final String[] containedPaths;
+		private MarsLibrary(String path) {
+			this.containedPaths = new String[] {path};
+		}
 		@Override
 		public String[] getPaths() {
-			// We only special-case Mars, and cause why not
-			return new String[] {"mars"};
+			return containedPaths;
 		}
 		@Override
 		public boolean isApplicable(EnvType env) { return true; } // no different envs in Mars
