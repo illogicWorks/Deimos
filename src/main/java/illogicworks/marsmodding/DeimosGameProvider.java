@@ -88,8 +88,7 @@ public class DeimosGameProvider implements GameProvider {
 	}
 	
 	enum MarsLibrary implements LibraryType {
-		MARS("Mars.class"),
-		DEIMOS(DeimosGameProvider.class.getCanonicalName().replace('.', '/') + ".class");
+		MARS("Mars.class");
 		private final String[] containedPaths;
 		private MarsLibrary(String path) {
 			this.containedPaths = new String[] {path};
@@ -120,7 +119,7 @@ public class DeimosGameProvider implements GameProvider {
 
 				if (classifier.has(MarsLibrary.MARS)) {
 					// Add Mars to gamejars, no need to search for it anymore
-					gameJars.add(classifier.getOrigin(MarsLibrary.DEIMOS));
+					gameJars.add(classifier.getOrigin(MarsLibrary.MARS));
 					return true;
 				}
 			} catch (IOException e) {
