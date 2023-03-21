@@ -108,7 +108,7 @@ public class DeimosGameProvider implements GameProvider {
 		arguments.parse(args);
 		
 		// On dev env, process the classpath to ensure everything is in the correct classloaders
-		if (launcher.isDevelopment()) {
+		if (Boolean.getBoolean(SystemProperties.DEVELOPMENT)) {
 			EnvType envType = launcher.getEnvironmentType();
 			try {
 				LibClassifier<MarsLibrary> classifier = new LibClassifier<>(MarsLibrary.class, envType, this);
