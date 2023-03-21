@@ -113,13 +113,14 @@ public class DeimosGameProvider implements GameProvider {
 			try {
 				LibClassifier<MarsLibrary> classifier = new LibClassifier<>(MarsLibrary.class, envType, this);
 				classifier.process(launcher.getClassPath());
-				
+
 				// Add other unknown classpath entries to gamejars.
 				// This ensures they're available in the runtime classpath
 				gameJars.addAll(classifier.getUnmatchedOrigins());
-				
+
 				if (classifier.has(MarsLibrary.MARS)) {
-					// Mars has already been added to gamejars, no need to search for it
+					// Add Mars to gamejars, no need to search for it anymore
+					gameJars.add(classifier.getOrigin(MarsLibrary.DEIMOS));
 					return true;
 				}
 			} catch (IOException e) {
