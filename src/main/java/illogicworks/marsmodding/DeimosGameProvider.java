@@ -1,8 +1,11 @@
 package illogicworks.marsmodding;
 
+import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.metadata.ModEnvironment;
 import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.game.GameProvider;
+import net.fabricmc.loader.impl.game.LibClassifier;
+import net.fabricmc.loader.impl.game.LibClassifier.LibraryType;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.metadata.BuiltinModMetadata;
@@ -18,7 +21,7 @@ import java.util.stream.Stream;
 
 public class DeimosGameProvider implements GameProvider {
 	private Arguments arguments;
-	private Path gameJar;
+	private final List<Path> gameJars = new ArrayList<>();
 
 	private static final GameTransformer TRANSFORMER = new GameTransformer(); // TODO main entrypoints
 
@@ -53,7 +56,7 @@ public class DeimosGameProvider implements GameProvider {
 				.setDescription("The Mars program")
 				.setEnvironment(ModEnvironment.UNIVERSAL);
 
-		return List.of(new BuiltinMod(List.of(gameJar), metadata.build()));
+		return List.of(new BuiltinMod(gameJars, metadata.build()));
 	}
 
 	@Override
@@ -83,18 +86,50 @@ public class DeimosGameProvider implements GameProvider {
 	public boolean isEnabled() {
 		return System.getProperty("mars.skipMarsProvider") == null;
 	}
+	
+	enum MarsLibrary implements LibraryType {
+		MARS;
+		@Override
+		public String[] getPaths() {
+			// We only special-case Mars, and cause why not
+			return new String[] {"mars"};
+		}
+		@Override
+		public boolean isApplicable(EnvType env) { return true; } // no different envs in Mars
+	}
 
 	@Override
 	public boolean locateGame(FabricLauncher launcher, String[] args) {
-		//this.envType = launcher.getEnvironmentType();
 		this.arguments = new Arguments();
 		arguments.parse(args);
+		
+		// On dev env, process the classpath to ensure everything is in the correct classloaders
+		if (launcher.isDevelopment()) {
+			EnvType envType = launcher.getEnvironmentType();
+			try {
+				LibClassifier<MarsLibrary> classifier = new LibClassifier<>(MarsLibrary.class, envType, this);
+				classifier.process(launcher.getClassPath());
+				
+				// Add other unknown classpath entries to gamejars.
+				// This ensures they're available in the runtime classpath
+				gameJars.addAll(classifier.getUnmatchedOrigins());
+				
+				if (classifier.has(MarsLibrary.MARS)) {
+					// Mars has already been added to gamejars, no need to search for it
+					return true;
+				}
+			} catch (IOException e) {
+				throw new IllegalStateException("Failed to identify libs in dev environment!");
+			}
+		}
+		// Outside dev env, match any Mars*.jar, but only one
 		String gamePath;
 		if ((gamePath = System.getProperty(SystemProperties.GAME_JAR_PATH)) != null) {
-			gameJar = Path.of(gamePath);
+			Path gameJar = Path.of(gamePath);
 			if (!Files.exists(gameJar) || Files.isDirectory(gameJar)) {
 				throw new IllegalStateException("Mars jar couldn't be located in provided " + SystemProperties.GAME_JAR_PATH + " (" + gameJar + ")");
 			}
+			gameJars.add(gameJar);
 			return true;
 		}
 		try (Stream<Path> children = Files.list(Path.of("."))) {
@@ -107,7 +142,7 @@ public class DeimosGameProvider implements GameProvider {
 			if (paths.size() > 1) {
 				throw new IllegalStateException("Multiple potential Mars jars found! Only one jar starting with 'Mars' in the folder is supported!");
 			}
-			gameJar = paths.get(0);
+			gameJars.add(paths.get(0));
 		} catch (IOException e) {
 			throw new IllegalStateException("Exception while trying to locate Mars!", e);
 		}
@@ -120,7 +155,7 @@ public class DeimosGameProvider implements GameProvider {
 
 	@Override
 	public void initialize(FabricLauncher launcher) {
-		TRANSFORMER.locateEntrypoints(launcher, List.of(gameJar));
+		TRANSFORMER.locateEntrypoints(launcher, gameJars);
 	}
 
 	@Override
@@ -142,7 +177,8 @@ public class DeimosGameProvider implements GameProvider {
 
 	@Override
 	public void unlockClassPath(FabricLauncher launcher) {
-		launcher.addToClassPath(gameJar);
+		for (Path gameJar : gameJars)
+			launcher.addToClassPath(gameJar);
 	}
 
 	@Override
