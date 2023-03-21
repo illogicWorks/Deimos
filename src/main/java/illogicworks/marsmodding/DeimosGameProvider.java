@@ -88,7 +88,7 @@ public class DeimosGameProvider implements GameProvider {
 	}
 	
 	enum MarsLibrary implements LibraryType {
-		MARS("Mars.class");
+		MARS("mars/MarsLaunch.class");
 		private final String[] containedPaths;
 		private MarsLibrary(String path) {
 			this.containedPaths = new String[] {path};
