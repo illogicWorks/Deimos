@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 public class DeimosGameProvider implements GameProvider {
 	private Arguments arguments;
 	private final List<Path> gameJars = new ArrayList<>();
+	private Collection<Path> validParentClassPath; // set at locateGame
 
 	private static final GameTransformer TRANSFORMER = new GameTransformer(); // TODO main entrypoints
 
@@ -116,6 +117,7 @@ public class DeimosGameProvider implements GameProvider {
 				// Add other unknown classpath entries to gamejars.
 				// This ensures they're available in the runtime classpath
 				gameJars.addAll(classifier.getUnmatchedOrigins());
+				validParentClassPath = classifier.getSystemLibraries();
 
 				if (classifier.has(MarsLibrary.MARS)) {
 					// Add Mars to gamejars, no need to search for it anymore
@@ -159,6 +161,10 @@ public class DeimosGameProvider implements GameProvider {
 
 	@Override
 	public void initialize(FabricLauncher launcher) {
+		// On dev env, setup fabric libs for runtime classpath
+		// TODO this may be needed on prod too
+		if (Boolean.getBoolean(SystemProperties.DEVELOPMENT))
+			launcher.setValidParentClassPath(validParentClassPath);
 		TRANSFORMER.locateEntrypoints(launcher, gameJars);
 	}
 
