@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 public class DeimosGameProvider implements GameProvider {
 	private Arguments arguments;
 	private final List<Path> gameJars = new ArrayList<>();
-	private Collection<Path> validParentClassPath; // set at locateGame
+	private Collection<Path> validParentClassPath; // loader and loader libs, set at locateGame
 
 	private static final GameTransformer TRANSFORMER = new GameTransformer(); // TODO main entrypoints
 
@@ -85,7 +85,7 @@ public class DeimosGameProvider implements GameProvider {
 
 	@Override
 	public boolean isEnabled() {
-		return System.getProperty("mars.skipMarsProvider") == null;
+		return System.getProperty("deimos.skipDeimosProvider") == null;
 	}
 	
 	enum MarsLibrary implements LibraryType {
@@ -107,28 +107,30 @@ public class DeimosGameProvider implements GameProvider {
 		this.arguments = new Arguments();
 		arguments.parse(args);
 		
-		// On dev env, process the classpath to ensure everything is in the correct classloaders
-		if (Boolean.getBoolean(SystemProperties.DEVELOPMENT)) {
-			EnvType envType = launcher.getEnvironmentType();
-			try {
-				LibClassifier<MarsLibrary> classifier = new LibClassifier<>(MarsLibrary.class, envType, this);
-				classifier.process(launcher.getClassPath());
+		// Classify libs
+		EnvType envType = launcher.getEnvironmentType();
+		try {
+			LibClassifier<MarsLibrary> classifier = new LibClassifier<>(MarsLibrary.class, envType, this);
+			// TODO setup classpath on prod
+			classifier.process(launcher.getClassPath());
 
-				// Add other unknown classpath entries to gamejars.
-				// This ensures they're available in the runtime classpath
-				gameJars.addAll(classifier.getUnmatchedOrigins());
-				validParentClassPath = classifier.getSystemLibraries();
+			// Add "unknown" classpath entries to gamejars (libraries).
+			// This ensures they're available in the runtime classpath
+			gameJars.addAll(classifier.getUnmatchedOrigins());
+			// Add loader and its libs to "boot" (yet accessible) classpath
+			validParentClassPath = classifier.getSystemLibraries();
 
-				if (classifier.has(MarsLibrary.MARS)) {
-					// Add Mars to gamejars, no need to search for it anymore
-					gameJars.add(classifier.getOrigin(MarsLibrary.MARS));
-					return true;
-				}
-			} catch (IOException e) {
-				throw new IllegalStateException("Failed to identify libs in dev environment!");
+			if (classifier.has(MarsLibrary.MARS)) {
+				// Add Mars to gamejars if present, no need to search for it anymore
+				// This happens in dev envs
+				gameJars.add(classifier.getOrigin(MarsLibrary.MARS));
+				return true;
 			}
+		} catch (IOException e) {
+			throw new IllegalStateException("Failed to identify libs!");
 		}
-		// Outside dev env, match any Mars*.jar, but only one
+
+		// Outside dev env, either use Mars in system prop or match any Mars*.jar, but only one
 		String gamePath;
 		if ((gamePath = System.getProperty(SystemProperties.GAME_JAR_PATH)) != null) {
 			Path gameJar = Path.of(gamePath);
@@ -161,10 +163,7 @@ public class DeimosGameProvider implements GameProvider {
 
 	@Override
 	public void initialize(FabricLauncher launcher) {
-		// On dev env, setup fabric libs for runtime classpath
-		// TODO this may be needed on prod too
-		if (Boolean.getBoolean(SystemProperties.DEVELOPMENT))
-			launcher.setValidParentClassPath(validParentClassPath);
+		launcher.setValidParentClassPath(validParentClassPath);
 		TRANSFORMER.locateEntrypoints(launcher, gameJars);
 	}
 
