@@ -52,6 +52,18 @@ tasks.withType(JavaCompile).configureEach {
 	it.options.release = 11
 }
 
+tasks.withType(Jar).configureEach {
+	manifest {
+		attributes(
+			'Implementation-Version' : project.version,
+			'Main-Class'             : 'illogicworks.marsmodding.ProdLauncher'
+		)
+	}
+	from configurations.runtimeClasspath, {
+		into "/META-INF/libs/"
+	}
+}
+
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
