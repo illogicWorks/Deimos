@@ -110,13 +110,14 @@ public class DeimosGameProvider implements GameProvider {
 		EnvType envType = launcher.getEnvironmentType();
 		try {
 			LibClassifier<MarsLibrary> classifier = new LibClassifier<>(MarsLibrary.class, envType, this);
-			// Process the launch classpath
-			classifier.process(launcher.getClassPath());
-			// When running via ProdLauncher, add the URLs from the context classloader
 			if (Thread.currentThread().getContextClassLoader() instanceof URLClassLoader) {
+				// When running via ProdLauncher, add the URLs from the context classloader
 				for (URL url : ((URLClassLoader)Thread.currentThread().getContextClassLoader()).getURLs()) {
 					classifier.process(url);
 				}
+			} else {
+				// Else process the launch classpath, for the dev env case
+				classifier.process(launcher.getClassPath());
 			}
 
 			// Add "unknown" classpath entries to gamejars (libraries).
