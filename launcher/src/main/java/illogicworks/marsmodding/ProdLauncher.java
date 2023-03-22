@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
  */
 class ProdLauncher {
 	private static final String LIB_LOCATION_PROP = "deimos.unpackedLibsPath";
-	private static boolean launchedViaProdLauncher;
 
 	public static void main(String[] args) throws Throwable {
 		List<String> jars = listJars();
@@ -22,10 +21,9 @@ class ProdLauncher {
 		if (!isCacheValid(libPath)) {
 			unpackLibs(libPath, jars);
 		}
+
 		MethodHandle entrypoint = launcher(libPath, jars);
-		
-		launchedViaProdLauncher = true;
-		
+
 		entrypoint.invokeExact(args);
 
 		//KnotClient.main(args);
@@ -45,15 +43,6 @@ class ProdLauncher {
 		return MethodHandles.publicLookup().findStatic(knotEntrypoint, "main", MethodType.methodType(void.class, String[].class));
 	}
 
-	public static boolean wasUsed() {
-		return launchedViaProdLauncher;
-	}
-	
-	public static List<URL> classPath() {
-		assert !wasUsed() : "Asked for classpath when ProdLauncher wasn't used";
-		return null; // TODO
-	}
-	
 	public static List<String> listJars() throws IOException {
 		String path = "/META-INF/libs";
 		URI uri;
