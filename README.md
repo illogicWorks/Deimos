@@ -8,7 +8,13 @@ Depends on [Fabric Loader](https://github.com/FabricMC/fabric-loader/) by Fabric
 
 ## Usage
 
-WIP
+- Download the latest Deimos launcher from the [releases page](https://github.com/illogicWorks/deimos/releases).
+
+- Put your Mars jar in the same folder
+
+- Double click the Deimos launcher to launch it!
+
+You can add mods to the `mods` folder it'll create in the folder it's in at first launch
 
 ## Creating mods
 
