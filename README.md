@@ -18,7 +18,7 @@ You can add mods to the `mods` folder it'll create in the folder it's in at firs
 
 ## Creating mods
 
-WIP
+See [the example mod](https://github.com/illogicWorks/DeimosExampleMod).
 
 ## License
 
