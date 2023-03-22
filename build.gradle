@@ -4,17 +4,25 @@ plugins {
     id 'maven-publish'
 }
 
-group 'illogicworks'
-version '0.1'
-
 sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
 
-repositories {
-    maven {
-        url "https://maven.fabricmc.net/"
-    }
-    mavenCentral()
+allprojects {
+	group 'illogicworks'
+	version '0.1'
+
+	repositories {
+    	maven {
+        	url "https://maven.fabricmc.net/"
+    	}
+    	mavenCentral()
+	}
+	
+	tasks.withType(JavaCompile).configureEach {
+		// We want Deimos to enforce at least Java 11.
+		// Only limited to 11 given the computers at university don't have newer versions
+		it.options.release = 11
+	}
 }
 
 dependencies {
@@ -44,24 +52,6 @@ dependencies {
 task Run(type: JavaExec) {
     classpath sourceSets.main.runtimeClasspath
     mainClass = "net.fabricmc.loader.impl.launch.knot.KnotClient"
-}
-
-tasks.withType(JavaCompile).configureEach {
-	// We want Deimos needs at least Java 11.
-	// Only limited to 11 given the computers at university don't have newer versions
-	it.options.release = 11
-}
-
-tasks.withType(Jar).configureEach {
-	manifest {
-		attributes(
-			'Implementation-Version' : project.version,
-			'Main-Class'             : 'illogicworks.marsmodding.ProdLauncher'
-		)
-	}
-	from configurations.runtimeClasspath, {
-		into "/META-INF/libs/"
-	}
 }
 
 publishing {

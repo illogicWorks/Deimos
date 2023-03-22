@@ -14,6 +14,8 @@ import net.fabricmc.loader.impl.util.SystemProperties;
 
 import java.io.IOException;
 import java.lang.invoke.*;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -89,14 +91,11 @@ public class DeimosGameProvider implements GameProvider {
 	}
 	
 	enum MarsLibrary implements LibraryType {
-		MARS("mars/MarsLaunch.class");
-		private final String[] containedPaths;
-		private MarsLibrary(String path) {
-			this.containedPaths = new String[] {path};
-		}
+		MARS;
 		@Override
 		public String[] getPaths() {
-			return containedPaths;
+			// We only special-case Mars, so might as well use the whole method for it
+			return new String[] {"mars/MarsLaunch.class"};
 		}
 		@Override
 		public boolean isApplicable(EnvType env) { return true; } // no different envs in Mars
@@ -111,8 +110,14 @@ public class DeimosGameProvider implements GameProvider {
 		EnvType envType = launcher.getEnvironmentType();
 		try {
 			LibClassifier<MarsLibrary> classifier = new LibClassifier<>(MarsLibrary.class, envType, this);
-			// TODO setup classpath on prod
+			// Process the launch classpath
 			classifier.process(launcher.getClassPath());
+			// When running via ProdLauncher, add the URLs from the context classloader
+			if (Thread.currentThread().getContextClassLoader() instanceof URLClassLoader) {
+				for (URL url : ((URLClassLoader)Thread.currentThread().getContextClassLoader()).getURLs()) {
+					classifier.process(url);
+				}
+			}
 
 			// Add "unknown" classpath entries to gamejars (libraries).
 			// This ensures they're available in the runtime classpath

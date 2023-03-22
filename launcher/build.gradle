@@ -1,0 +1,25 @@
+plugins {
+	id 'java'
+    id 'java-library'
+}
+
+archivesBaseName = 'DeimosLauncher'
+
+dependencies {
+	// Here to add them to the jar in the task below
+	runtimeOnly project(':')
+}
+
+tasks.withType(Jar).configureEach {
+	manifest {
+		attributes(
+			'Implementation-Version' : project.version,
+			'Main-Class'             : 'illogicworks.marsmodding.ProdLauncher'
+		)
+	}
+	// Add all libraries to the jar for ProdLauncher to extract
+	from configurations.runtimeClasspath, {
+		into "/META-INF/libs/"
+	}
+}
+

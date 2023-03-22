@@ -30,17 +30,17 @@ class ProdLauncher {
 
 		//KnotClient.main(args);
 	}
-	
+
 	static MethodHandle launcher(String libPath, List<String> jars) throws IOException, ReflectiveOperationException {
 		List<URL> urls = new ArrayList<>();
 		for (String jar : jars) {
 			Path jarPath = Path.of(libPath, jar);
 			URL url = jarPath.toUri().toURL();
 			urls.add(url);
-			System.out.println(url);
 		}
 		URLClassLoader bootLoader = new URLClassLoader(urls.toArray(URL[]::new));
 		Class<?> knotEntrypoint = bootLoader.loadClass("net.fabricmc.loader.impl.launch.knot.KnotClient");
+		// Set context classloader for default ServiceLoader lookup to find our GameProvider on the correct loader
 		Thread.currentThread().setContextClassLoader(bootLoader);
 		return MethodHandles.publicLookup().findStatic(knotEntrypoint, "main", MethodType.methodType(void.class, String[].class));
 	}
