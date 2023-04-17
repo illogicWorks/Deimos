@@ -133,7 +133,7 @@ public class DeimosGameProvider implements GameProvider {
 				return true;
 			}
 		} catch (IOException e) {
-			throw new IllegalStateException("Failed to identify libs!");
+			throw new IllegalStateException("Failed to identify libs!", e);
 		}
 
 		// Outside dev env, either use Mars in system prop or match any Mars*.jar, but only one
@@ -141,7 +141,8 @@ public class DeimosGameProvider implements GameProvider {
 		if ((gamePath = System.getProperty(SystemProperties.GAME_JAR_PATH)) != null) {
 			Path gameJar = Path.of(gamePath);
 			if (!Files.exists(gameJar) || Files.isDirectory(gameJar)) {
-				throw new IllegalStateException("Mars jar couldn't be located in provided " + SystemProperties.GAME_JAR_PATH + " (" + gameJar + ")");
+				throw new FormattedException("Couldn't find Mars!", 
+						"Mars jar couldn't be located in provided " + SystemProperties.GAME_JAR_PATH + " (" + gameJar + ")");
 			}
 			gameJars.add(gameJar);
 			return true;
@@ -151,14 +152,17 @@ public class DeimosGameProvider implements GameProvider {
 					.filter(p -> p.getFileName().toString().startsWith("Mars") && p.getFileName().toString().endsWith(".jar"))
 					.collect(Collectors.toList());
 			if (paths.size() == 0) {
-				throw new IllegalStateException("Mars jar was not located! Make sure it's in the run folder (current one)");
+				throw new FormattedException("Couldn't find Mars!",
+						"The Mars jar was not located! Make sure it's in the run folder (the one where the launcher is)");
 			}
 			if (paths.size() > 1) {
-				throw new IllegalStateException("Multiple potential Mars jars found! Only one jar starting with 'Mars' in the folder is supported!");
+				throw new FormattedException("Couldn't find Mars!",
+						"Multiple potential Mars jars found! You should only have one jar starting with 'Mars' in the launcher folder!");
 			}
 			gameJars.add(paths.get(0));
 		} catch (IOException e) {
-			throw new IllegalStateException("Exception while trying to locate Mars!", e);
+			throw new FormattedException("Error while trying to find Mars!",
+					"There was an unexpected exception while trying to find the Mars jar! Report this to Deimos!", e);
 		}
 		return true;
 	}
