@@ -6,6 +6,7 @@ import java.net.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Launches with deimos on production from a fatjar
@@ -16,6 +17,8 @@ class ProdLauncher {
 	private static final String LIB_LOCATION_PROP = "deimos.unpackedLibsPath";
 
 	public static void main(String[] args) throws Throwable {
+		JavaCheck.ensureJava11();
+
 		List<String> jars = listJars();
 		String libPath = System.getProperty(LIB_LOCATION_PROP, ".deimoslibs");
 		if (!isCacheValid(libPath)) {
@@ -58,7 +61,7 @@ class ProdLauncher {
 
         try (FileSystem fileSystem = FileSystems.newFileSystem(uri, Map.of())) {
         	Path libsFolder = fileSystem.getPath(path);
-        	try (var stream = Files.list(libsFolder)) {
+        	try (Stream<Path> stream = Files.list(libsFolder)) {
             	return stream
             			.map(Path::getFileName)
             			.map(Path::toString)
@@ -87,7 +90,7 @@ class ProdLauncher {
 		Files.createDirectories(libsDir);
 
 		// empty possible existing cache folder
-		try (var contents = Files.newDirectoryStream(libsDir)) {
+		try (DirectoryStream<Path> contents = Files.newDirectoryStream(libsDir)) {
 			for (Path p : contents) {
 				if (Files.isDirectory(p)) {
 					System.err.println("Found directory when cleaning .deimoslibs folder!");
@@ -107,5 +110,4 @@ class ProdLauncher {
 
 		Files.writeString(libsDir.resolve("versionlock"), version);
 	}
-
 }

@@ -5,6 +5,10 @@ plugins {
 
 archivesBaseName = 'DeimosLauncher'
 
+// Not release given only JavaCheck really needs to not use newer features
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
 dependencies {
 	// Here to add them to the jar in the task below
 	runtimeOnly project(':')

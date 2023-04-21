@@ -4,9 +4,6 @@ plugins {
     id 'maven-publish'
 }
 
-sourceCompatibility = JavaVersion.VERSION_11
-targetCompatibility = JavaVersion.VERSION_11
-
 allprojects {
 	group 'illogicworks'
 	version '0.1'
@@ -16,12 +13,6 @@ allprojects {
         	url "https://maven.fabricmc.net/"
     	}
     	mavenCentral()
-	}
-	
-	tasks.withType(JavaCompile).configureEach {
-		// We want Deimos to enforce at least Java 11.
-		// Only limited to 11 given the computers at university don't have newer versions
-		it.options.release = 11
 	}
 }
 
@@ -47,6 +38,12 @@ dependencies {
     // needed by fabric loader, although we don't need remapping
     implementation 'net.fabricmc:tiny-mappings-parser:0.3.0+build.17'
     implementation 'net.fabricmc:tiny-remapper:0.8.2'
+}
+
+tasks.withType(JavaCompile).configureEach {
+	// We want Deimos to enforce at least Java 11.
+	// Only limited to 11 given the computers at university don't have newer versions
+	it.options.release = 11
 }
 
 task Run(type: JavaExec) {
