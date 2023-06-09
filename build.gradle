@@ -9,7 +9,7 @@ targetCompatibility = JavaVersion.VERSION_11
 
 allprojects {
 	group 'illogicworks'
-	version '0.1'
+	version '0.2'
 
 	repositories {
     	maven {
