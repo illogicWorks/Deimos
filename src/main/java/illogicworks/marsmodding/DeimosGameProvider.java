@@ -149,7 +149,7 @@ public class DeimosGameProvider implements GameProvider {
 		}
 		try (Stream<Path> children = Files.list(Path.of("."))) {
 			List<Path> paths = children
-					.filter(p -> p.getFileName().toString().startsWith("Mars") && p.getFileName().toString().endsWith(".jar"))
+					.filter(p -> p.getFileName().toString().toLowerCase().startsWith("mars") && p.getFileName().toString().endsWith(".jar"))
 					.collect(Collectors.toList());
 			if (paths.size() == 0) {
 				throw new FormattedException("Couldn't find Mars!",
